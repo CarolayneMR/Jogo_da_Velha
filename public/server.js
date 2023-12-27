@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
       gameBoard[index] = currentPlayer;
 
       if (checkWinner()) {
-        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: 'Você ganhou!' });
+        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: `GG player: ${currentPlayer} ganhou!` });
       } else if (gameBoard.every(cell => cell !== '')) {
         io.emit('updateBoard', { gameBoard, currentTurn, gameOver: 'Empate!' });
       } else {

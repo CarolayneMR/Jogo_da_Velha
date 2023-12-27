@@ -49,17 +49,20 @@
   <!---- Client.js basicamente ---->
   <script>
     const board = document.getElementById('board');
+    const restartButton = document.querySelector('.btn');
     const socket = io();
-
-    socket.on('updateBoard', (gameBoard) => {
+  
+    socket.on('updateBoard', ({ gameBoard, currentTurn, gameOver }) => {
       updateBoard(gameBoard);
+  
+      if (gameOver) {
+        alert(gameOver);
+        resetBoard();
+      } else {
+        alert(`É a vez de ${currentTurn}`);
+      }
     });
-
-    socket.on('gameOver', (message) => {
-      alert(message);
-      resetBoard();
-    });
-
+  
     function createBoard() {
       for (let i = 0; i < 9; i++) {
         const cell = document.createElement('div');
@@ -67,8 +70,8 @@
         cell.dataset.index = i;
         cell.addEventListener('click', () => handleCellClick(i));
         board.appendChild(cell);
-      }
     }
+  }
 
     function updateBoard(gameBoard) {
       const cells = document.querySelectorAll('.cell');
@@ -87,6 +90,10 @@
         cell.textContent = '';
       });
     }
+
+    restartButton.addEventListener('click', () => {
+      socket.emit('restartGame');
+    });
 
     createBoard();
   </script>

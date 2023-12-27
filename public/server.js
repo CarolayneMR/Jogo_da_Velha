@@ -15,24 +15,26 @@ app.get('/', (req, res) => {
 
 let gameBoard = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
+let currentTurn = 'X';
 
 io.on('connection', (socket) => {
   console.log('Novo jogador conectado');
 
-  // Envia o tabuleiro atual quando um novo jogador se conecta
-  io.emit('updateBoard', gameBoard);
+  // Envia o tabuleiro atual e o turno quando um novo jogador se conecta
+  socket.emit('updateBoard', { gameBoard, currentTurn });
 
   socket.on('cellClick', (index) => {
-    if (gameBoard[index] === '') {
+    if (gameBoard[index] === '' && currentTurn === currentPlayer) {
       gameBoard[index] = currentPlayer;
-      io.emit('updateBoard', gameBoard);
 
       if (checkWinner()) {
-        io.emit('gameOver', `${currentPlayer} venceu!`);
+        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: true });
       } else if (gameBoard.every(cell => cell !== '')) {
-        io.emit('gameOver', 'Empate!');
+        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: 'Empate!' });
       } else {
         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        currentTurn = currentPlayer; // Atualiza o turno
+        io.emit('updateBoard', { gameBoard, currentTurn });
       }
     }
   });
@@ -61,6 +63,5 @@ function checkWinner() {
 }
 
 server.listen(8080, '10.35.5.18', () => {
-    console.log('Servidor rodando em: http://localhost:8080');
-  });
-  
+  console.log('Servidor rodando em: http://localhost:8080');
+});

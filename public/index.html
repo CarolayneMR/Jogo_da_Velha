@@ -61,18 +61,23 @@
     const restartButton = document.querySelector('.btn');
     const socket = io();
   
-    socket.on('updateBoard', ({ gameBoard, currentTurn, gameOver }) => {
-      updateBoard(gameBoard);
+    
+    socket.on('updateBoard', ({ gameBoard, currentTurn, gameOver, winner }) => {
+    updateBoard(gameBoard);
 
-      const messageElement = document.getElementById('message');
+    const messageElement = document.getElementById('message');
 
-      if (gameOver) {
-        messageElement.innerText = gameOver;
-        resetBoard();
-      } else {
-        messageElement.innerText = `É a vez de ${currentTurn}`;
-      }
-    });
+    if (gameOver) {
+      messageElement.innerText = gameOver;
+      resetBoard();
+    } else if (winner) {
+      messageElement.innerText = `${winner} venceu!`;
+      resetBoard();
+    } else {
+      messageElement.innerText = `É a vez de ${currentTurn}`;
+    }
+  });
+
   
     function CriarTabela() {
       for (let i = 0; i < 9; i++) {
@@ -105,11 +110,7 @@
     restartButton.addEventListener('click', () => {
       socket.emit('restartGame');
       alert('Jogo reiniciado');
-    }); //Esse aqui irá fazer mostrar quando clicar no botão reiniciar.
-
-    restartButton.addEventListener('click', () => {
-    socket.emit('restartGame');
-    });
+    }); //Esse aqui irá fazer mostrar quando clicar no botão reiniciar
 
     socket.on('restartGame', () => {
       resetBoard();

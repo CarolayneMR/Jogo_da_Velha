@@ -27,16 +27,18 @@ io.on('connection', (socket) => {
   socket.on('cellClick', (index) => {
     const currentPlayerSocket = players[currentPlayerIndex];
     if (gameBoard[index] === '' && socket === currentPlayerSocket) {
-      gameBoard[index] = currentPlayerSocket.id;
-
+      const marker = currentPlayerIndex === 0 ? 'X' : 'O';
+      gameBoard[index] = marker;
+  
       if (checkWinner()) {
-        io.emit('updateBoard', { gameBoard, currentTurn: 'Game Over', winner: `GG player: ${currentPlayerSocket.id} ganhou!` });
+        const winnerMarker = currentPlayerIndex === 0 ? 'X' : 'O';
+        io.emit('updateBoard', { gameBoard, currentTurn: 'Game Over', winner: `GG player: ${winnerMarker} ganhou!` });
       } else if (gameBoard.every(cell => cell !== '')) {
-        io.emit('updateBoard', { gameBoard, currentTurn: 'Game Over', gameOver: 'Empate!' });
+          io.emit('updateBoard', { gameBoard, currentTurn: 'Game Over', gameOver: 'Empate!' });
       } else {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        const nextPlayerSocket = players[currentPlayerIndex];
-        io.emit('updateBoard', { gameBoard, currentTurn: nextPlayerSocket.id });
+          currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+          const nextPlayerSocket = players[currentPlayerIndex];
+          io.emit('updateBoard', { gameBoard, currentTurn: nextPlayerSocket.id });
       }
     }
   });
@@ -74,10 +76,14 @@ function checkWinner() {
     [2, 4, 6]
   ];
 
-  return winPatterns.some(pattern => {
+  for (const pattern of winPatterns) {
     const [a, b, c] = pattern;
-    return gameBoard[a] !== '' && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c];
-  });
+    if (gameBoard[a] !== '' && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+      return gameBoard[a]; // Return the winner marker
+    }
+  }
+
+  return null;
 }
 
 server.listen(8080, '10.35.5.18', () => {

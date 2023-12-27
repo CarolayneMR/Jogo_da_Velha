@@ -95,6 +95,15 @@
       socket.emit('restartGame');
     });
 
+    restartButton.addEventListener('click', () => {
+    socket.emit('restartGame');
+    });
+
+    socket.on('restartGame', () => {
+      resetBoard();
+      alert('Jogo reiniciado!');
+    });
+
     createBoard();
   </script>
 </body>

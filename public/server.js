@@ -1,3 +1,4 @@
+
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -28,7 +29,7 @@ io.on('connection', (socket) => {
       gameBoard[index] = currentPlayer;
 
       if (checkWinner()) {
-        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: true });
+        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: 'Você ganhou!' });
       } else if (gameBoard.every(cell => cell !== '')) {
         io.emit('updateBoard', { gameBoard, currentTurn, gameOver: 'Empate!' });
       } else {
@@ -37,6 +38,14 @@ io.on('connection', (socket) => {
         io.emit('updateBoard', { gameBoard, currentTurn });
       }
     }
+  });
+
+  socket.on('restartGame', () => {
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    currentPlayer = 'X';
+    currentTurn = 'X';
+
+    io.emit('updateBoard', { gameBoard, currentTurn });
   });
 
   socket.on('disconnect', () => {

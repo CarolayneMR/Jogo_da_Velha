@@ -1,4 +1,3 @@
-
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -15,43 +14,53 @@ app.get('/', (req, res) => {
 });
 
 let gameBoard = ['', '', '', '', '', '', '', '', ''];
-let currentPlayer = 'X';
-let currentTurn = 'X';
+let players = [];
+let currentPlayerIndex = 0;
 
 io.on('connection', (socket) => {
   console.log('Novo jogador conectado');
+  players.push(socket);
 
   // Envia o tabuleiro atual e o turno quando um novo jogador se conecta
-  socket.emit('updateBoard', { gameBoard, currentTurn });
+  socket.emit('updateBoard', { gameBoard, currentTurn: players[currentPlayerIndex].id });
 
   socket.on('cellClick', (index) => {
-    if (gameBoard[index] === '' && currentTurn === currentPlayer) {
-      gameBoard[index] = currentPlayer;
+    const currentPlayerSocket = players[currentPlayerIndex];
+    if (gameBoard[index] === '' && socket === currentPlayerSocket) {
+      gameBoard[index] = currentPlayerSocket.id;
 
       if (checkWinner()) {
-        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: `GG player: ${currentPlayer} ganhou!` });
+        io.emit('updateBoard', { gameBoard, currentTurn: 'Game Over', winner: `GG player: ${currentPlayerSocket.id} ganhou!` });
       } else if (gameBoard.every(cell => cell !== '')) {
-        io.emit('updateBoard', { gameBoard, currentTurn, gameOver: 'Empate!' });
+        io.emit('updateBoard', { gameBoard, currentTurn: 'Game Over', gameOver: 'Empate!' });
       } else {
-        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-        currentTurn = currentPlayer; // Atualiza o turno
-        io.emit('updateBoard', { gameBoard, currentTurn });
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        const nextPlayerSocket = players[currentPlayerIndex];
+        io.emit('updateBoard', { gameBoard, currentTurn: nextPlayerSocket.id });
       }
     }
   });
 
   socket.on('restartGame', () => {
     gameBoard = ['', '', '', '', '', '', '', '', ''];
-    currentPlayer = 'X';
-    currentTurn = 'X';
+    currentPlayerIndex = 0;
 
-    io.emit('updateBoard', { gameBoard, currentTurn });
+    io.emit('updateBoard', { gameBoard, currentTurn: players[currentPlayerIndex].id });
   });
 
   socket.on('disconnect', () => {
+    const disconnectedPlayerIndex = players.indexOf(socket);
+    if (disconnectedPlayerIndex !== -1) {
+      players.splice(disconnectedPlayerIndex, 1);
+      if (currentPlayerIndex >= players.length) {
+        currentPlayerIndex = 0;
+      }
+    }
+
     console.log('Jogador desconectado');
   });
 });
+
 
 function checkWinner() {
   const winPatterns = [

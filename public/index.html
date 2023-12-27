@@ -34,6 +34,13 @@
     .btn{
       padding: 10px;
     }
+
+    #message {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+
   </style>
 
   <title>Jogo da Velha</title>
@@ -41,12 +48,14 @@
 <body>
 
   <h1>Jogo da Velha</h1>
+
+  <div id="message"></div>
   <div class="centralizar" id="board"></div>
   <button class="btn">Reiniciar</button> <!-- add fun depois -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
  
-  <!---- Client.js basicamente ---->
+  <!---- Aqui entra o JS : Client.js basicamente ---->
   <script>
     const board = document.getElementById('board');
     const restartButton = document.querySelector('.btn');
@@ -54,16 +63,18 @@
   
     socket.on('updateBoard', ({ gameBoard, currentTurn, gameOver }) => {
       updateBoard(gameBoard);
-  
+
+      const messageElement = document.getElementById('message');
+
       if (gameOver) {
-        alert(gameOver);
+        messageElement.innerText = gameOver;
         resetBoard();
       } else {
-        alert(`É a vez de ${currentTurn}`);
+        messageElement.innerText = `É a vez de ${currentTurn}`;
       }
     });
   
-    function createBoard() {
+    function CriarTabela() {
       for (let i = 0; i < 9; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
@@ -93,7 +104,8 @@
 
     restartButton.addEventListener('click', () => {
       socket.emit('restartGame');
-    });
+      alert('Jogo reiniciado');
+    }); //Esse aqui irá fazer mostrar quando clicar no botão reiniciar.
 
     restartButton.addEventListener('click', () => {
     socket.emit('restartGame');
@@ -101,10 +113,9 @@
 
     socket.on('restartGame', () => {
       resetBoard();
-      alert('Jogo reiniciado!');
     });
-
-    createBoard();
+    
+    CriarTabela();
   </script>
 </body>
 </html>
